@@ -3,11 +3,11 @@ BLENDER="C:\Program Files\Blender Foundation\Blender 4.2.1\blender.exe"
 DIST=../dist
 
 all : \
-    $(DIST)/hexapod.pnct \
-    $(DIST)/hexapod.scene \
+    $(DIST)/maze.pnct \
+    $(DIST)/maze.scene \
 
-$(DIST)/hexapod.scene : hexapod.blend export-scene.py
-    $(BLENDER) --background --python export-scene.py -- "hexapod.blend:Main" "$(DIST)/hexapod.scene"
+$(DIST)/maze.scene : maze.blend export-scene.py
+    $(BLENDER) --background --python export-scene.py -- "maze.blend:Collection" "$(DIST)/maze.scene"
 
-$(DIST)/hexapod.pnct : hexapod.blend export-meshes.py
-    $(BLENDER) --background --python export-meshes.py -- "hexapod.blend:Main" "$(DIST)/hexapod.pnct" 
+$(DIST)/maze.pnct : maze.blend export-meshes.py
+    $(BLENDER) --background --python export-meshes.py -- "maze.blend:Collection" "$(DIST)/maze.pnct" 

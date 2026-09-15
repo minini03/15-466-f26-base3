@@ -180,8 +180,38 @@ const game_exe = maek.LINK([...game_names, ...common_names], 'dist/game');
 const show_meshes_exe = maek.LINK([...show_meshes_names, ...common_names], 'scenes/show-meshes');
 const show_scene_exe = maek.LINK([...show_scene_names, ...common_names], 'scenes/show-scene');
 
+// Export maze meshes/scene from Blender (same pipeline as scenes/Makefile):
+function blender_bin() {
+	if (maek.OS === "macos") return "/Applications/Blender.app/Contents/MacOS/Blender";
+	if (maek.OS === "linux") return "../../blender-5.2.1-linux-x64/blender";
+	return "blender";
+}
+
+function BLENDER_EXPORT(script, blendFile, collection, outFile) {
+	const infile = `${blendFile}:${collection}`;
+	const command = [blender_bin(), "-y", "--background", "--python", script, "--", infile, outFile];
+	const task = async () => {
+		await maek.run(command, `BLENDER ${outFile}`, async () => {
+			return {
+				read: [script, blendFile],
+				written: [outFile],
+			};
+		});
+	};
+	task.depends = [script, blendFile];
+	task.label = `BLENDER ${outFile}`;
+	if (outFile in maek.tasks) {
+		throw new Error(`Task ${task.label} purports to create ${outFile}, but ${maek.tasks[outFile].label} already creates that file.`);
+	}
+	maek.tasks[outFile] = task;
+	return outFile;
+}
+
+const maze_pnct = BLENDER_EXPORT("scenes/export-meshes.py", "scenes/maze.blend", "Collection", "dist/maze.pnct");
+const maze_scene = BLENDER_EXPORT("scenes/export-scene.py", "scenes/maze.blend", "Collection", "dist/maze.scene");
+
 //set the default target to the game (and copy the readme files):
-maek.TARGETS = [game_exe, show_meshes_exe, show_scene_exe, ...copies];
+maek.TARGETS = [game_exe, show_meshes_exe, show_scene_exe, maze_pnct, maze_scene, ...copies];
 
 //Note that tasks that produce ':abstract targets' are never cached.
 // This is similar to how .PHONY targets behave in make.
